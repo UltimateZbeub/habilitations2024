@@ -41,6 +41,8 @@ namespace habilitations2024.view
         {
             InitializeComponent();
             Init();
+            RemplirFiltreProfils();
+            cboFiltreProfil.SelectedIndexChanged += CboFiltreProfil_SelectedIndexChanged;
         }
 
         /// <summary>
@@ -254,5 +256,33 @@ namespace habilitations2024.view
             txtPwd2.Text = "";
         }
 
+        private void RemplirFiltreProfils()
+        {
+            List<Profil> profils = controller.GetLesProfils();
+            profils.Insert(0, new Profil(0, "")); // Ajoute une ligne vide en tête
+            cboFiltreProfil.DataSource = profils;
+            cboFiltreProfil.DisplayMember = "Nom";
+            cboFiltreProfil.ValueMember = "Idprofil";
+        }
+
+        private void CboFiltreProfil_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Profil selectedProfil = (Profil)cboFiltreProfil.SelectedItem;
+            List<Developpeur> developpeurs;
+
+            if (selectedProfil.Idprofil == 0) // "Tous"
+            {
+                developpeurs = controller.GetLesDeveloppeurs();
+            }
+            else
+            {
+                developpeurs = controller.GetLesDeveloppeurs()
+                    .Where(dev => dev.Profil.Idprofil == selectedProfil.Idprofil)
+                    .ToList();
+            }
+
+            bdgDeveloppeurs.DataSource = developpeurs;
+            dgvDeveloppeurs.DataSource = bdgDeveloppeurs;
+        }
     }
 }
