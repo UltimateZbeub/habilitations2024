@@ -63,24 +63,34 @@ namespace habilitations2024.dal
         /// Récupère et retourne les développeurs
         /// </summary>
         /// <returns>liste des développeurs</returns>
-        public List<Developpeur> GetLesDeveloppeurs()
+        public List<Developpeur> GetLesDeveloppeurs(Profil profilFiltre = null)
         {
             List<Developpeur> lesDeveloppeurs = new List<Developpeur>();
             if (access.Manager != null)
             {
                 string req = "select d.iddeveloppeur as iddeveloppeur, d.nom as nom, d.prenom as prenom, d.tel as tel, d.mail as mail, p.idprofil as idprofil, p.nom as profil ";
                 req += "from developpeur d join profil p on (d.idprofil = p.idprofil) ";
-                req += "order by nom, prenom;";
+
+                Dictionary<string, object> parameters = new Dictionary<string, object>();
+
+                if (profilFiltre != null)
+                {
+                    req += "where p.idprofil = @idprofil ";
+                    parameters.Add("@idprofil", profilFiltre.Idprofil);
+                }
+
+                req += "order by d.nom, d.prenom;";
+
                 try
                 {
-                    List<Object[]> records = access.Manager.ReqSelect(req);
+                    List<Object[]> records = access.Manager.ReqSelect(req, parameters);
                     if (records != null)
                     {
                         foreach (Object[] record in records)
                         {
                             Profil profil = new Profil((int)record[5], (string)record[6]);
                             Developpeur developpeur = new Developpeur((int)record[0], (string)record[1], (string)record[2],
-                                (string)record[3], (string)record[4], profil);
+                            (string)record[3], (string)record[4], profil);
                             lesDeveloppeurs.Add(developpeur);
                         }
                     }
@@ -93,6 +103,7 @@ namespace habilitations2024.dal
             }
             return lesDeveloppeurs;
         }
+
 
         /// <summary>
         /// Demande de suppression d'un développeur
